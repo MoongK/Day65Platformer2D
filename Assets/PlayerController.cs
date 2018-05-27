@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour {
     Rigidbody2D rb;
     SpriteRenderer sr;
     Animator anim;
+    Color originColor;
     bool isJumping = false;
 
     void Start()
@@ -17,6 +18,7 @@ public class PlayerController : MonoBehaviour {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponentInChildren<SpriteRenderer>();
         anim = GetComponentInChildren<Animator>();
+        originColor = transform.Find("PlayerModel").GetComponent<SpriteRenderer>().color;
     }
 
     void Update()
@@ -26,7 +28,7 @@ public class PlayerController : MonoBehaviour {
             isJumping = true;
             anim.SetTrigger("DoJump");
             anim.SetBool("IsJumping", true);
-        }    
+        }
     }
 
     void FixedUpdate()
@@ -68,6 +70,8 @@ public class PlayerController : MonoBehaviour {
 
     private void OnTriggerStay2D(Collider2D collision)
     {
+        print(collision.gameObject.name);
+
         if ((collision.gameObject.layer == 8 || collision.gameObject.layer == 9) && rb.velocity.y <= 0)
             anim.SetBool("IsJumping", false);
 
@@ -82,8 +86,29 @@ public class PlayerController : MonoBehaviour {
                     rb.velocity = Vector2.zero;
                     rb.AddForce(v, ForceMode2D.Impulse);
                     break;
+
+                case "Portal":
+                    if (Input.GetKeyDown(KeyCode.UpArrow))
+                    {
+                        GameObject[] LinkedPortal = GameObject.FindObjectsOfType<GameObject>();
+                        foreach (GameObject ob in LinkedPortal)
+                        {
+                            if (ob.GetComponent<BlockStatus>())
+                            {
+                                if (ob.GetComponent<BlockStatus>().type == "Portal" && ob.GetComponent<BlockStatus>().value == block.value && ob != block.gameObject)
+                                    transform.position = ob.transform.position + Vector3.up;
+                            }
+                        }
+                    }
+                    break;
+                case "Color":
+                    // 4 : green / 5 : blue
+                    if (block.value == 4)
+                        transform.Find("PlayerModel").GetComponent<SpriteRenderer>().color = Color.green;
+                    else if (block.value == 5)
+                        transform.Find("PlayerModel").GetComponent<SpriteRenderer>().color = Color.blue;
+                    break;
             }
         }
     }
-
 }
